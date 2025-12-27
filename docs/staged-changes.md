@@ -1,8 +1,3 @@
----
-title: Staged Changes
-description: Learn how to queue model changes for review and approval before they're persisted using Tracer's staged changes system.
----
-
 This guide covers the staged changes system, which allows you to queue model changes for review and approval before they're persisted.
 
 ## When to Use Staged Changes

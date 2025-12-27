@@ -1,8 +1,3 @@
----
-title: Advanced Usage
-description: Advanced features including events, custom configurations, performance optimization, and integration patterns for Tracer.
----
-
 This guide covers advanced features including events, custom configurations, performance optimization, and integration patterns.
 
 ## Events

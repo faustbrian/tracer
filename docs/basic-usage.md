@@ -1,8 +1,3 @@
----
-title: Basic Usage
-description: Deep dive into the revision tracking system, including configuration options, querying revisions, and reverting changes.
----
-
 This guide covers the revision tracking system in detail, including configuration options, querying revisions, and reverting changes.
 
 ## Setting Up a Model

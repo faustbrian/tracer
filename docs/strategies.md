@@ -1,8 +1,3 @@
----
-title: Diff Strategies
-description: Learn how diff strategies control how model changes are calculated, stored, and applied in Tracer.
----
-
 This guide covers diff strategies, which control how model changes are calculated and stored.
 
 ## What Are Diff Strategies?

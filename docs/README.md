@@ -1,8 +1,3 @@
----
-title: Getting Started
-description: Install, configure, and start using Tracer to track model revisions and manage staged changes with approval workflows in your Laravel application.
----
-
 Welcome to Tracer, a Laravel package for tracking model revisions and managing staged changes with approval workflows. This guide will help you install, configure, and start using Tracer in your application.
 
 ## Installation

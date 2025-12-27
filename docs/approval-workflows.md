@@ -1,8 +1,3 @@
----
-title: Approval Workflows
-description: Learn how to configure approval strategies for staged changes, including built-in strategies and creating custom workflows.
----
-
 This guide covers the approval system for staged changes, including built-in strategies and creating custom workflows.
 
 ## Approval Strategies
