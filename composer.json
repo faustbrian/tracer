@@ -28,9 +28,9 @@
         "cline/variable-keys": "^1.1"
     },
     "require-dev": {
-        "cline/coding-standard": "^1.5.7",
-        "orchestra/testbench": "^10.8",
-        "symfony/var-dumper": "^7.4.0"
+        "cline/coding-standard": "^1.6.2",
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "symfony/var-dumper": "^6.0|^7.0"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,
