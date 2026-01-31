@@ -1,0 +1,145 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Trait Cline\\Tracer\\Concerns\\HasStagedChanges is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: src/Concerns/HasStagedChanges.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between array\{old\: array\<string, mixed\>, new\: array\<string, mixed\>\} and array\{\} will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Conductors/RevisionConductor.php
+
+		-
+			message: '#^Type \$this\(Cline\\Tracer\\Contracts\\Stageable\) in generic type Illuminate\\Database\\Eloquent\\Relations\\MorphMany\<Cline\\Tracer\\Database\\Models\\StagedChange, \$this\(Cline\\Tracer\\Contracts\\Stageable\)\> in PHPDoc tag @return is not subtype of template type TDeclaringModel of Illuminate\\Database\\Eloquent\\Model of class Illuminate\\Database\\Eloquent\\Relations\\MorphMany\.$#'
+			identifier: generics.notSubtype
+			count: 3
+			path: src/Contracts/Stageable.php
+
+		-
+			message: '#^Type \$this\(Cline\\Tracer\\Contracts\\Traceable\) in generic type Illuminate\\Database\\Eloquent\\Relations\\MorphMany\<Cline\\Tracer\\Database\\Models\\Revision, \$this\(Cline\\Tracer\\Contracts\\Traceable\)\> in PHPDoc tag @return is not subtype of template type TDeclaringModel of Illuminate\\Database\\Eloquent\\Model of class Illuminate\\Database\\Eloquent\\Relations\\MorphMany\.$#'
+			identifier: generics.notSubtype
+			count: 1
+			path: src/Contracts/Traceable.php
+
+		-
+			message: '#^Parameter \#1 \$map of static method Illuminate\\Database\\Eloquent\\Relations\\Relation\<Illuminate\\Database\\Eloquent\\Model,Illuminate\\Database\\Eloquent\\Model,mixed\>\:\:morphMap\(\) expects array\<string, class\-string\<Illuminate\\Database\\Eloquent\\Model\>\>\|null, array\<class\-string, string\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Database/Models/ModelRegistry.php
+
+		-
+			message: '#^Class Cline\\Tracer\\Database\\Models\\Revision uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Database/Models/Revision.php
+
+		-
+			message: '#^Class Cline\\Tracer\\Database\\Models\\StagedChange uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Database/Models/StagedChange.php
+
+		-
+			message: '#^Method Cline\\Tracer\\Database\\Models\\StagedChange\:\:revisions\(\) should return Illuminate\\Database\\Eloquent\\Relations\\MorphMany\<Cline\\Tracer\\Database\\Models\\Revision, \$this\(Cline\\Tracer\\Database\\Models\\StagedChange\)\> but returns Illuminate\\Database\\Query\\Builder\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Database/Models/StagedChange.php
+
+		-
+			message: '#^Return type \(Illuminate\\Database\\Eloquent\\Relations\\MorphMany\<Cline\\Tracer\\Database\\Models\\Revision, \$this\(Cline\\Tracer\\Database\\Models\\StagedChange\)\>\) of method Cline\\Tracer\\Database\\Models\\StagedChange\:\:revisions\(\) should be compatible with return type \(Illuminate\\Database\\Eloquent\\Relations\\MorphMany\<Cline\\Tracer\\Database\\Models\\Revision, \$this\(Cline\\Tracer\\Contracts\\Traceable\)\>\) of method Cline\\Tracer\\Contracts\\Traceable\:\:revisions\(\)$#'
+			identifier: method.childReturnType
+			count: 1
+			path: src/Database/Models/StagedChange.php
+
+		-
+			message: '#^Class Cline\\Tracer\\Database\\Models\\StagedChangeApproval uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types\: TFactory$#'
+			identifier: missingType.generics
+			count: 1
+			path: src/Database/Models/StagedChangeApproval.php
+
+		-
+			message: '#^Parameter \#4 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/RevisionNotFoundForModelException.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/StagedChangeAlreadyTerminalException.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/StagedChangeApplyFailedException.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/StagedChangeNotApprovedException.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/StagedChangeNotMutableException.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$values of function sprintf expects bool\|float\|int\|string\|null, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Exceptions/StagedChangeTargetNotFoundException.php
+
+		-
+			message: '#^Cannot cast mixed to int\.$#'
+			identifier: cast.int
+			count: 2
+			path: src/Strategies/Approval/QuorumApprovalStrategy.php
+
+		-
+			message: '#^Cannot cast mixed to string\.$#'
+			identifier: cast.string
+			count: 1
+			path: src/Strategies/Diff/AttributeDiffStrategy.php
+
+		-
+			message: '#^Method Cline\\Tracer\\Strategies\\Diff\\AttributeDiffStrategy\:\:formatValue\(\) should return string but returns string\|false\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Strategies/Diff/AttributeDiffStrategy.php
+
+		-
+			message: '#^Method Cline\\Tracer\\Strategies\\Diff\\SnapshotDiffStrategy\:\:apply\(\) should return array\<string, mixed\> but returns array\<mixed, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Strategies/Diff/SnapshotDiffStrategy.php
+
+		-
+			message: '#^Parameter \#2 \.\.\.\$arrays of function array_merge expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Strategies/Diff/SnapshotDiffStrategy.php
+
+		-
+			message: '#^Class Cline\\Tracer\\Tracer has PHPDoc tag @method for method stage\(\) parameter \#2 \$attributes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Tracer.php
+
+		-
+			message: '#^Call to function is_a\(\) with arguments class\-string\<Cline\\Tracer\\Contracts\\ApprovalStrategy\>, ''Cline\\\\Tracer\\\\Contracts\\\\ApprovalStrategy'' and true will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/TracerManager.php
+
+		-
+			message: '#^Call to function is_a\(\) with arguments class\-string\<Cline\\Tracer\\Contracts\\DiffStrategy\>, ''Cline\\\\Tracer\\\\Contracts\\\\DiffStrategy'' and true will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: src/TracerManager.php

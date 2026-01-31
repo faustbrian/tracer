@@ -1,0 +1,80 @@
+{
+    "name": "cline/tracer",
+    "description": "Model revision tracking and staged write management with approval workflows",
+    "license": "MIT",
+    "keywords": [
+        "php",
+        "laravel",
+        "revisions",
+        "staging",
+        "audit",
+        "versioning",
+        "approval-workflow"
+    ],
+    "authors": [
+        {
+            "name": "Brian Faust",
+            "email": "brian@cline.sh"
+        }
+    ],
+    "require": {
+        "php": "^8.5.0",
+        "cline/morphism": "^1.3.0",
+        "cline/variable-keys": "^1.2",
+        "illuminate/contracts": "^11.0 || ^12.0",
+        "illuminate/database": "^11.0 || ^12.0",
+        "illuminate/events": "^11.0 || ^12.0",
+        "illuminate/support": "^11.0 || ^12.0",
+        "spatie/laravel-package-tools": "^1.92.7"
+    },
+    "require-dev": {
+        "cline/coding-standard": "^1.6.3",
+        "orchestra/testbench": "^8.0 || ^9.0 || ^10.8",
+        "symfony/var-dumper": "^6.0 || ^7.4"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "Cline\\Tracer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "aliases": {
+                "Tracer": "Cline\\Tracer\\Tracer"
+            },
+            "providers": [
+                "Cline\\Tracer\\TracerServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "lint": "vendor/bin/ecs check --fix",
+        "refactor": "rector",
+        "test": [
+            "@test:lint",
+            "@test:type-coverage",
+            "@test:unit",
+            "@test:types",
+            "@test:refactor"
+        ],
+        "test:lint": "vendor/bin/ecs check",
+        "test:refactor": "rector --dry-run",
+        "test:type-coverage": "pest --parallel --min=80 --type-coverage",
+        "test:types": "phpstan",
+        "test:unit": "pest --parallel --min=80 --coverage"
+    }
+}
