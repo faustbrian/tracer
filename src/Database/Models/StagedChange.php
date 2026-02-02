@@ -11,8 +11,8 @@ namespace Cline\Tracer\Database\Models;
 
 use Cline\Tracer\Concerns\HasRevisions;
 use Cline\Tracer\Contracts\Traceable;
-use Cline\VariableKeys\Database\Concerns\HasVariablePrimaryKey;
 use Cline\Tracer\Enums\StagedChangeStatus;
+use Cline\VariableKeys\Database\Concerns\HasVariablePrimaryKey;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;

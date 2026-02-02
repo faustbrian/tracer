@@ -30,20 +30,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 trait HasRevisions
 {
     /**
-     * Boot the trait and register the observer.
-     *
-     * Automatically attaches the TraceableObserver to listen for model events
-     * and record revisions. Called by Laravel during model initialization.
-     *
-     * Laravel 10 compatibility: Uses boot{TraitName} naming convention
-     * instead of #[Boot] attribute (which only works in Laravel 11+).
-     */
-    protected static function bootHasRevisions(): void
-    {
-        static::observe(TraceableObserver::class);
-    }
-
-    /**
      * Get all revisions for this model.
      *
      * @return MorphMany<Revision, $this>
@@ -77,5 +63,19 @@ trait HasRevisions
     public function getRevision(int $version): ?Revision
     {
         return $this->revisions()->where('version', $version)->first();
+    }
+
+    /**
+     * Boot the trait and register the observer.
+     *
+     * Automatically attaches the TraceableObserver to listen for model events
+     * and record revisions. Called by Laravel during model initialization.
+     *
+     * Laravel 10 compatibility: Uses boot{TraitName} naming convention
+     * instead of #[Boot] attribute (which only works in Laravel 11+).
+     */
+    protected static function bootHasRevisions(): void
+    {
+        static::observe(TraceableObserver::class);
     }
 }

@@ -77,19 +77,6 @@ final class TracerServiceProvider extends PackageServiceProvider
         // ModelRegistry for morph map handling
         $this->app->singleton(ModelRegistry::class);
 
-        // Register Tracer models with VariableKeys
-        VariableKeys::map([
-            Revision::class => [
-                'primary_key_type' => PrimaryKeyType::from(config('tracer.primary_key_type', 'id')),
-            ],
-            StagedChange::class => [
-                'primary_key_type' => PrimaryKeyType::from(config('tracer.primary_key_type', 'id')),
-            ],
-            StagedChangeApproval::class => [
-                'primary_key_type' => PrimaryKeyType::from(config('tracer.primary_key_type', 'id')),
-            ],
-        ]);
-
         // Default strategy bindings (can be overridden via config)
         $this->app->bind(function (): DiffStrategy {
             /** @var class-string<DiffStrategy> $strategy */
@@ -122,6 +109,19 @@ final class TracerServiceProvider extends PackageServiceProvider
     #[Override()]
     public function bootingPackage(): void
     {
+        // Register Tracer models with VariableKeys
+        VariableKeys::map([
+            Revision::class => [
+                'primary_key_type' => PrimaryKeyType::from(config('tracer.primary_key_type', 'id')),
+            ],
+            StagedChange::class => [
+                'primary_key_type' => PrimaryKeyType::from(config('tracer.primary_key_type', 'id')),
+            ],
+            StagedChangeApproval::class => [
+                'primary_key_type' => PrimaryKeyType::from(config('tracer.primary_key_type', 'id')),
+            ],
+        ]);
+
         $this->configureMorphKeyMaps();
     }
 
