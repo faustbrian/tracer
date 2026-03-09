@@ -19,12 +19,12 @@ composer require cline/tracer
 
 ## Documentation
 
-- **[Getting Started](cookbook/getting-started.md)** - Installation, configuration, and first steps
-- **[Basic Usage](cookbook/basic-usage.md)** - Revision tracking and querying history
-- **[Staged Changes](cookbook/staged-changes.md)** - Queue changes for approval before persisting
-- **[Approval Workflows](cookbook/approval-workflows.md)** - Simple, quorum, and custom approval strategies
-- **[Strategies](cookbook/strategies.md)** - Customize how changes are calculated and stored
-- **[Advanced Usage](cookbook/advanced-usage.md)** - Events, performance, and integration patterns
+- **[Getting Started](DOCS.md#doc-docs-readme)** - Installation, configuration, and first steps
+- **[Basic Usage](DOCS.md#doc-docs-basic-usage)** - Revision tracking and querying history
+- **[Staged Changes](DOCS.md#doc-docs-staged-changes)** - Queue changes for approval before persisting
+- **[Approval Workflows](DOCS.md#doc-docs-approval-workflows)** - Simple, quorum, and custom approval strategies
+- **[Strategies](DOCS.md#doc-docs-strategies)** - Customize how changes are calculated and stored
+- **[Advanced Usage](DOCS.md#doc-docs-advanced-usage)** - Events, performance, and integration patterns
 
 ## Change log
 

@@ -1,11 +1,13 @@
 ## Table of Contents
 
-1. Getting Started (`docs/README.md`)
-2. Basic Usage (`docs/basic-usage.md`)
-3. Staged Changes (`docs/staged-changes.md`)
-4. Approval Workflows (`docs/approval-workflows.md`)
-5. Strategies (`docs/strategies.md`)
-6. Advanced Usage (`docs/advanced-usage.md`)
+1. [Getting Started](#doc-docs-readme) (`docs/README.md`)
+2. [Basic Usage](#doc-docs-basic-usage) (`docs/basic-usage.md`)
+3. [Staged Changes](#doc-docs-staged-changes) (`docs/staged-changes.md`)
+4. [Approval Workflows](#doc-docs-approval-workflows) (`docs/approval-workflows.md`)
+5. [Strategies](#doc-docs-strategies) (`docs/strategies.md`)
+6. [Advanced Usage](#doc-docs-advanced-usage) (`docs/advanced-usage.md`)
+<a id="doc-docs-readme"></a>
+
 Welcome to Tracer, a Laravel package for tracking model revisions and managing staged changes with approval workflows. This guide will help you install, configure, and start using Tracer in your application.
 
 ## Installation
@@ -336,6 +338,8 @@ Now that you have Tracer installed, explore more features:
 - **[Approval Workflows](approval-workflows)** - Configure approval strategies
 - **[Strategies](strategies)** - Customize diff calculation
 - **[Advanced Usage](advanced-usage)** - Events, custom strategies, and more
+
+<a id="doc-docs-basic-usage"></a>
 
 This guide covers the revision tracking system in detail, including configuration options, querying revisions, and reverting changes.
 
@@ -758,6 +762,8 @@ protected $listen = [
 - **[Staged Changes](staged-changes)** - Add approval workflows
 - **[Strategies](strategies)** - Customize how diffs are calculated
 - **[Advanced Usage](advanced-usage)** - Events, custom strategies, and more
+
+<a id="doc-docs-staged-changes"></a>
 
 This guide covers the staged changes system, which allows you to queue model changes for review and approval before they're persisted.
 
@@ -1268,6 +1274,8 @@ $revision->new_values; // ['title' => 'New Title']
 - **[Strategies](strategies)** - Customize diff calculation
 - **[Advanced Usage](advanced-usage)** - Events, custom strategies, and more
 
+<a id="doc-docs-approval-workflows"></a>
+
 This guide covers the approval system for staged changes, including built-in strategies and creating custom workflows.
 
 ## Approval Strategies
@@ -1725,6 +1733,8 @@ class TwoPhaseApprovalStrategy implements ApprovalStrategy
 - **[Strategies](strategies)** - Customize diff calculation
 - **[Advanced Usage](advanced-usage)** - Events, custom strategies, and more
 
+<a id="doc-docs-strategies"></a>
+
 This guide covers diff strategies, which control how model changes are calculated and stored.
 
 ## What Are Diff Strategies?
@@ -2166,6 +2176,8 @@ $strategies = Tracer::getDiffStrategies();
 ## Next Steps
 
 - **[Advanced Usage](advanced-usage)** - Events, pruning, and more
+
+<a id="doc-docs-advanced-usage"></a>
 
 This guide covers advanced features including events, custom configurations, performance optimization, and integration patterns.
 
