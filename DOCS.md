@@ -1,11 +1,11 @@
 ## Table of Contents
 
-1. [Getting Started](#doc-docs-readme) (`docs/README.md`)
-2. [Basic Usage](#doc-docs-basic-usage) (`docs/basic-usage.md`)
-3. [Staged Changes](#doc-docs-staged-changes) (`docs/staged-changes.md`)
-4. [Approval Workflows](#doc-docs-approval-workflows) (`docs/approval-workflows.md`)
-5. [Strategies](#doc-docs-strategies) (`docs/strategies.md`)
-6. [Advanced Usage](#doc-docs-advanced-usage) (`docs/advanced-usage.md`)
+1. [Getting Started](#doc-docs-readme)
+2. [Basic Usage](#doc-docs-basic-usage)
+3. [Staged Changes](#doc-docs-staged-changes)
+4. [Approval Workflows](#doc-docs-approval-workflows)
+5. [Strategies](#doc-docs-strategies)
+6. [Advanced Usage](#doc-docs-advanced-usage)
 <a id="doc-docs-readme"></a>
 
 Welcome to Tracer, a Laravel package for tracking model revisions and managing staged changes with approval workflows. This guide will help you install, configure, and start using Tracer in your application.
