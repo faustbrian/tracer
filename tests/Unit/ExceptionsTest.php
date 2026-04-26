@@ -18,6 +18,8 @@ use Cline\Tracer\Exceptions\RevisionNotFoundException;
 use Cline\Tracer\Exceptions\RevisionNotFoundForModelException;
 use Cline\Tracer\Exceptions\StagedChangeAlreadyTerminalException;
 use Cline\Tracer\Exceptions\StagedChangeApplyFailedException;
+use Cline\Tracer\Exceptions\StagedChangeHasConflictsException;
+use Cline\Tracer\Exceptions\StagedChangeManualResolutionMissingValuesException;
 use Cline\Tracer\Exceptions\StagedChangeNotApprovedException;
 use Cline\Tracer\Exceptions\StagedChangeNotMutableException;
 use Cline\Tracer\Exceptions\StagedChangeTargetNotFoundException;
@@ -73,6 +75,32 @@ describe('Exceptions', function (): void {
             $exception = StagedChangeApplyFailedException::forStagedChange($staged, 'Custom reason');
 
             expect($exception->getMessage())->toContain('Custom reason');
+        });
+
+        test('conflicts exception includes conflicting attributes', function (): void {
+            $article = createArticle('Original');
+            $staged = Tracer::staging($article)->stage(['title' => 'New']);
+
+            $exception = StagedChangeHasConflictsException::forStagedChange($staged, [
+                'title' => [
+                    'original' => 'Original',
+                    'current' => 'Live',
+                    'proposed' => 'New',
+                ],
+            ]);
+
+            expect($exception->getMessage())->toContain('title');
+            expect($exception->getMessage())->toContain('unresolved conflicts');
+        });
+
+        test('manual resolution exception includes missing attributes', function (): void {
+            $article = createArticle('Original');
+            $staged = Tracer::staging($article)->stage(['title' => 'New']);
+
+            $exception = StagedChangeManualResolutionMissingValuesException::forStagedChange($staged, ['title']);
+
+            expect($exception->getMessage())->toContain('title');
+            expect($exception->getMessage())->toContain('manual resolution');
         });
     });
 

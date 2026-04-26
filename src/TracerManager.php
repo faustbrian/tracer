@@ -21,9 +21,12 @@ use Cline\Tracer\Contracts\Traceable;
 use Cline\Tracer\Database\Models\Revision;
 use Cline\Tracer\Database\Models\StagedChange;
 use Cline\Tracer\Enums\StagedChangeStatus;
+use Cline\Tracer\Enums\StagedConflictResolution;
 use Cline\Tracer\Events\StagedChangeApplied;
 use Cline\Tracer\Exceptions\InvalidStrategyClassException;
 use Cline\Tracer\Exceptions\StagedChangeAlreadyTerminalException;
+use Cline\Tracer\Exceptions\StagedChangeHasConflictsException;
+use Cline\Tracer\Exceptions\StagedChangeManualResolutionMissingValuesException;
 use Cline\Tracer\Exceptions\StagedChangeNotApprovedException;
 use Cline\Tracer\Exceptions\StagedChangeNotMutableException;
 use Cline\Tracer\Exceptions\StagedChangeTargetNotFoundException;
@@ -39,6 +42,7 @@ use Illuminate\Support\Facades\Date;
 
 use const true;
 
+use function array_key_exists;
 use function array_keys;
 use function array_merge;
 use function event;
@@ -211,15 +215,21 @@ final class TracerManager
      * saves it to the database. The staged change must be in an approved status
      * before it can be applied. Dispatches a StagedChangeApplied event on success.
      *
-     * @param StagedChange $stagedChange The approved staged change to apply
-     * @param null|Model   $appliedBy    The model representing who applied the change (e.g., User)
+     * @param StagedChange                         $stagedChange   The approved staged change to apply
+     * @param null|Model                           $appliedBy      The model representing who applied the change (e.g., User)
+     * @param null|StagedConflictResolution|string $mode           Optional conflict resolution mode for stale attributes
+     * @param array<string, mixed>                 $resolvedValues Explicit values for manual conflict resolution
      *
      * @throws StagedChangeNotApprovedException    If the staged change is not in an approved status
      * @throws StagedChangeTargetNotFoundException If the target model no longer exists
      * @return bool                                True if the change was successfully applied
      */
-    public function apply(StagedChange $stagedChange, ?Model $appliedBy = null): bool
-    {
+    public function apply(
+        StagedChange $stagedChange,
+        ?Model $appliedBy = null,
+        StagedConflictResolution|string|null $mode = null,
+        array $resolvedValues = [],
+    ): bool {
         if (!$stagedChange->status->canBeApplied()) {
             throw StagedChangeNotApprovedException::forStagedChange($stagedChange);
         }
@@ -230,19 +240,33 @@ final class TracerManager
             throw StagedChangeTargetNotFoundException::forStagedChange($stagedChange);
         }
 
-        $diffStrategy = $this->resolveDiffStrategy($stagedChange->diff_strategy);
-
-        $newValues = $diffStrategy->apply(
-            $stageable->getAttributes(),
-            $stagedChange->proposed_values,
-            reverse: false,
+        $conflicts = $this->detectConflicts($stagedChange);
+        $resolution = $this->normalizeConflictResolution($mode) ?? $stagedChange->conflict_resolution;
+        $appliedValues = $this->resolveAppliedValues(
+            $stagedChange,
+            $conflicts,
+            $resolution,
+            $resolvedValues,
         );
 
-        $stageable->fill($newValues);
+        $stageable->fill($appliedValues);
         $stageable->save();
 
         $stagedChange->status = StagedChangeStatus::Applied;
         $stagedChange->applied_at = Date::now();
+        $stagedChange->conflict_snapshot = $conflicts === [] ? null : $conflicts;
+
+        if ($resolution instanceof StagedConflictResolution) {
+            $stagedChange->conflict_resolution = $resolution;
+        }
+
+        if ($resolution === StagedConflictResolution::Manual && $conflicts !== []) {
+            $stagedChange->resolved_values = $this->extractManualResolvedValues(
+                $stagedChange,
+                $conflicts,
+                $resolvedValues !== [] ? $resolvedValues : ($stagedChange->resolved_values ?? []),
+            );
+        }
 
         if ($appliedBy instanceof Model) {
             $stagedChange->metadata = array_merge($stagedChange->metadata ?? [], [
@@ -260,6 +284,75 @@ final class TracerManager
         }
 
         return true;
+    }
+
+    /**
+     * Detect conflicts between staged base values and the current model state.
+     *
+     * @param  StagedChange                        $stagedChange The staged change to inspect
+     * @return array<string, array<string, mixed>> Detected conflicts keyed by attribute
+     */
+    public function detectConflicts(StagedChange $stagedChange): array
+    {
+        $stageable = $stagedChange->stageable;
+
+        if ($stageable === null) {
+            throw StagedChangeTargetNotFoundException::forStagedChange($stagedChange);
+        }
+
+        $conflicts = [];
+
+        foreach (array_keys($stagedChange->proposed_values) as $attribute) {
+            $originalValue = $stagedChange->original_values[$attribute] ?? null;
+            $currentValue = $stageable->getAttribute($attribute);
+
+            if ($currentValue === $originalValue) {
+                continue;
+            }
+
+            $conflicts[$attribute] = [
+                'original' => $originalValue,
+                'current' => $currentValue,
+                'proposed' => $stagedChange->proposed_values[$attribute] ?? null,
+            ];
+        }
+
+        $stagedChange->forceFill([
+            'conflict_snapshot' => $conflicts === [] ? null : $conflicts,
+        ])->save();
+
+        return $conflicts;
+    }
+
+    /**
+     * Determine whether the staged change currently has conflicts.
+     */
+    public function hasConflicts(StagedChange $stagedChange): bool
+    {
+        return $this->detectConflicts($stagedChange) !== [];
+    }
+
+    /**
+     * Persist a conflict resolution mode for later apply operations.
+     *
+     * @param StagedChange                    $stagedChange   The staged change being resolved
+     * @param StagedConflictResolution|string $mode           The resolution mode to persist
+     * @param array<string, mixed>            $resolvedValues Explicit values for manual conflict resolution
+     */
+    public function resolveConflicts(
+        StagedChange $stagedChange,
+        StagedConflictResolution|string $mode,
+        array $resolvedValues = [],
+    ): void {
+        $conflicts = $this->detectConflicts($stagedChange);
+        $resolution = $this->normalizeConflictResolution($mode);
+
+        $stagedChange->conflict_resolution = $resolution;
+        $stagedChange->conflict_snapshot = $conflicts === [] ? null : $conflicts;
+        $stagedChange->resolved_values = $resolution === StagedConflictResolution::Manual
+            ? $this->extractManualResolvedValues($stagedChange, $conflicts, $resolvedValues)
+            : null;
+        $stagedChange->save();
     }
 
     /**
@@ -290,6 +383,9 @@ final class TracerManager
         }
 
         $stagedChange->proposed_values = array_merge($stagedChange->proposed_values, $values);
+        $stagedChange->conflict_resolution = null;
+        $stagedChange->resolved_values = null;
+        $stagedChange->conflict_snapshot = null;
         $stagedChange->save();
     }
 
@@ -528,6 +624,92 @@ final class TracerManager
     {
         /** @var bool */
         return Config::get('tracer.events.enabled', true);
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>> $conflicts
+     * @param  array<string, mixed>                $resolvedValues
+     * @return array<string, mixed>
+     */
+    private function resolveAppliedValues(
+        StagedChange $stagedChange,
+        array $conflicts,
+        ?StagedConflictResolution $resolution,
+        array $resolvedValues,
+    ): array {
+        if ($conflicts === []) {
+            return $stagedChange->proposed_values;
+        }
+
+        if (!$resolution instanceof StagedConflictResolution) {
+            throw StagedChangeHasConflictsException::forStagedChange($stagedChange, $conflicts);
+        }
+
+        $appliedValues = $stagedChange->proposed_values;
+
+        foreach ($conflicts as $attribute => $conflict) {
+            $appliedValues[$attribute] = match ($resolution) {
+                StagedConflictResolution::Ours => $conflict['current'],
+                StagedConflictResolution::Theirs => $conflict['proposed'],
+                StagedConflictResolution::Manual => $this->extractManualResolvedValues(
+                    $stagedChange,
+                    $conflicts,
+                    $resolvedValues !== [] ? $resolvedValues : ($stagedChange->resolved_values ?? []),
+                )[$attribute],
+            };
+        }
+
+        return $appliedValues;
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>> $conflicts
+     * @param  array<string, mixed>                $resolvedValues
+     * @return array<string, mixed>
+     */
+    private function extractManualResolvedValues(
+        StagedChange $stagedChange,
+        array $conflicts,
+        array $resolvedValues,
+    ): array {
+        $missingAttributes = [];
+
+        foreach (array_keys($conflicts) as $attribute) {
+            if (array_key_exists($attribute, $resolvedValues)) {
+                continue;
+            }
+
+            $missingAttributes[] = $attribute;
+        }
+
+        if ($missingAttributes !== []) {
+            throw StagedChangeManualResolutionMissingValuesException::forStagedChange($stagedChange, $missingAttributes);
+        }
+
+        $resolved = [];
+
+        foreach (array_keys($conflicts) as $attribute) {
+            $resolved[$attribute] = $resolvedValues[$attribute];
+        }
+
+        return $resolved;
+    }
+
+    /**
+     * Normalize conflict resolution input to the enum form used internally.
+     */
+    private function normalizeConflictResolution(
+        StagedConflictResolution|string|null $mode,
+    ): ?StagedConflictResolution {
+        if ($mode === null) {
+            return null;
+        }
+
+        if ($mode instanceof StagedConflictResolution) {
+            return $mode;
+        }
+
+        return StagedConflictResolution::from($mode);
     }
 
     /**

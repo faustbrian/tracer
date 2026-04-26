@@ -54,7 +54,8 @@ final class TracerServiceProvider extends PackageServiceProvider
         $package
             ->name('tracer')
             ->hasConfigFile()
-            ->hasMigration('create_tracer_tables');
+            ->hasMigration('create_tracer_tables')
+            ->hasMigration('update_tracer_staged_changes_for_conflict_resolution');
     }
 
     /**

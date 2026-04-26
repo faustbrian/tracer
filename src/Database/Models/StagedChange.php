@@ -12,6 +12,7 @@ namespace Cline\Tracer\Database\Models;
 use Cline\Tracer\Concerns\HasRevisions;
 use Cline\Tracer\Contracts\Traceable;
 use Cline\Tracer\Enums\StagedChangeStatus;
+use Cline\Tracer\Enums\StagedConflictResolution;
 use Cline\VariableKeys\Database\Concerns\HasVariablePrimaryKey;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -28,26 +29,29 @@ use Override;
  * Stores proposed changes to a model that must go through an approval workflow
  * before being applied. Supports configurable diff and approval strategies.
  *
- * @property null|Carbon                           $applied_at        When the change was applied (if applied)
- * @property null|array<string, mixed>             $approval_metadata Strategy-specific approval tracking data
- * @property string                                $approval_strategy Identifier of the approval strategy used
- * @property Collection<int, StagedChangeApproval> $approvals         Individual approval/rejection records
- * @property null|Model                            $author            The user/entity that proposed this change
- * @property null|int|string                       $author_id         Polymorphic ID of the change author
- * @property null|string                           $author_type       Polymorphic type of the change author
- * @property Carbon                                $created_at        When the change was staged
- * @property string                                $diff_strategy     Identifier of the diff strategy used
- * @property mixed                                 $id                Primary key (auto-increment, UUID, or ULID)
- * @property null|array<string, mixed>             $metadata          Additional context about the staged change
- * @property array<string, mixed>                  $original_values   Original attribute values before proposed changes
- * @property array<string, mixed>                  $proposed_values   Proposed new attribute values
- * @property null|string                           $reason            Reason for the proposed change
- * @property null|string                           $rejection_reason  Reason for rejection if rejected
- * @property null|Model                            $stageable         The model this staged change targets
- * @property int|string                            $stageable_id      Polymorphic ID of the target model
- * @property string                                $stageable_type    Polymorphic type of the target model
- * @property StagedChangeStatus                    $status            Current workflow status
- * @property Carbon                                $updated_at        When the staged change was last modified
+ * @property null|Carbon                              $applied_at          When the change was applied (if applied)
+ * @property null|array<string, mixed>                $approval_metadata   Strategy-specific approval tracking data
+ * @property string                                   $approval_strategy   Identifier of the approval strategy used
+ * @property Collection<int, StagedChangeApproval>    $approvals           Individual approval/rejection records
+ * @property null|Model                               $author              The user/entity that proposed this change
+ * @property null|int|string                          $author_id           Polymorphic ID of the change author
+ * @property null|string                              $author_type         Polymorphic type of the change author
+ * @property null|StagedConflictResolution            $conflict_resolution The persisted resolution mode for conflicts
+ * @property null|array<string, array<string, mixed>> $conflict_snapshot   Latest detected conflicts keyed by attribute
+ * @property Carbon                                   $created_at          When the change was staged
+ * @property string                                   $diff_strategy       Identifier of the diff strategy used
+ * @property mixed                                    $id                  Primary key (auto-increment, UUID, or ULID)
+ * @property null|array<string, mixed>                $metadata            Additional context about the staged change
+ * @property array<string, mixed>                     $original_values     Original attribute values before proposed changes
+ * @property array<string, mixed>                     $proposed_values     Proposed new attribute values
+ * @property null|string                              $reason              Reason for the proposed change
+ * @property null|string                              $rejection_reason    Reason for rejection if rejected
+ * @property null|array<string, mixed>                $resolved_values     Persisted manual resolution values
+ * @property null|Model                               $stageable           The model this staged change targets
+ * @property int|string                               $stageable_id        Polymorphic ID of the target model
+ * @property string                                   $stageable_type      Polymorphic type of the target model
+ * @property StagedChangeStatus                       $status              Current workflow status
+ * @property Carbon                                   $updated_at          When the staged change was last modified
  *
  * @author Brian Faust <brian@cline.sh>
  */
@@ -70,6 +74,9 @@ final class StagedChange extends Model implements Traceable
         'reason',
         'rejection_reason',
         'approval_metadata',
+        'conflict_resolution',
+        'resolved_values',
+        'conflict_snapshot',
         'author_type',
         'author_id',
         'metadata',
@@ -145,6 +152,9 @@ final class StagedChange extends Model implements Traceable
             'proposed_values' => 'array',
             'status' => StagedChangeStatus::class,
             'approval_metadata' => 'array',
+            'conflict_resolution' => StagedConflictResolution::class,
+            'resolved_values' => 'array',
+            'conflict_snapshot' => 'array',
             'metadata' => 'array',
             'applied_at' => 'datetime',
         ];

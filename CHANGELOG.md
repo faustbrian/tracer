@@ -10,3 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added repository-level maintainer guidance in `AGENTS.md`.
 - Initial release
+- Added conflict-aware staged change application with persisted resolution
+  metadata, conflict inspection APIs, and `ours` / `theirs` / `manual`
+  resolution modes for stale model writes.

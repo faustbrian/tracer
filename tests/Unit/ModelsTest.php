@@ -9,6 +9,7 @@
 
 use Cline\Tracer\Database\Models\StagedChange;
 use Cline\Tracer\Enums\StagedChangeStatus;
+use Cline\Tracer\Enums\StagedConflictResolution;
 use Cline\Tracer\Tracer;
 use Tests\Fixtures\Article;
 
@@ -189,6 +190,30 @@ describe('Models', function (): void {
             Tracer::approve($staged, $user);
 
             expect($staged->fresh()->status->isMutable())->toBeFalse();
+        });
+
+        test('casts persisted conflict resolution fields', function (): void {
+            $article = createArticle('Original');
+            $staged = Tracer::staging($article)->stage(['title' => 'New']);
+            Tracer::approve($staged);
+            $article->update(['title' => 'Live']);
+
+            Tracer::resolveConflicts(
+                $staged->fresh(),
+                StagedConflictResolution::Manual,
+                ['title' => 'Merged'],
+            );
+
+            expect($staged->fresh())
+                ->conflict_resolution->toBe(StagedConflictResolution::Manual)
+                ->resolved_values->toBe(['title' => 'Merged'])
+                ->conflict_snapshot->toBe([
+                    'title' => [
+                        'original' => 'Original',
+                        'current' => 'Live',
+                        'proposed' => 'New',
+                    ],
+                ]);
         });
     });
 

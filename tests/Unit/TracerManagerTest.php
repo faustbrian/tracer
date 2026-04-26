@@ -10,6 +10,7 @@
 use Cline\Tracer\Configuration\ModelConfigurationBuilder;
 use Cline\Tracer\Database\Models\StagedChange;
 use Cline\Tracer\Enums\StagedChangeStatus;
+use Cline\Tracer\Enums\StagedConflictResolution;
 use Cline\Tracer\Tracer;
 use Cline\Tracer\TracerManager;
 use Tests\Fixtures\Article;
@@ -79,6 +80,27 @@ describe('TracerManager', function (): void {
 
         expect($staged->fresh()->status)->toBe(StagedChangeStatus::Applied);
         expect($article->fresh()->title)->toBe('New Title');
+    });
+
+    test('detects and resolves staged change conflicts via facade', function (): void {
+        $article = createArticle('Original');
+        $staged = Tracer::stage($article, ['title' => 'New Title']);
+        Tracer::approve($staged);
+        $article->update(['title' => 'Live Title']);
+
+        $conflicts = Tracer::detectConflicts($staged->fresh());
+
+        expect($conflicts)->toHaveKey('title');
+
+        Tracer::resolveConflicts(
+            $staged->fresh(),
+            StagedConflictResolution::Manual,
+            ['title' => 'Merged Title'],
+        );
+
+        Tracer::apply($staged->fresh());
+
+        expect($article->fresh()->title)->toBe('Merged Title');
     });
 
     test('reverts to revision via facade', function (): void {

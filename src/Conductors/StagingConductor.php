@@ -14,6 +14,7 @@ use Cline\Tracer\Contracts\DiffStrategy;
 use Cline\Tracer\Contracts\Stageable;
 use Cline\Tracer\Database\Models\StagedChange;
 use Cline\Tracer\Enums\StagedChangeStatus;
+use Cline\Tracer\Enums\StagedConflictResolution;
 use Cline\Tracer\Events\StagedChangeCreated;
 use Cline\Tracer\TracerManager;
 use Illuminate\Database\Eloquent\Collection;
@@ -187,6 +188,24 @@ final readonly class StagingConductor
     }
 
     /**
+     * Apply a single staged change.
+     *
+     * @param  StagedChange                         $stagedChange   The staged change to apply
+     * @param  null|Model                           $appliedBy      Optional model representing who applied the change
+     * @param  null|StagedConflictResolution|string $mode           Optional conflict resolution mode
+     * @param  array<string, mixed>                 $resolvedValues Explicit values for manual conflict resolution
+     * @return bool                                 True when the staged change was applied
+     */
+    public function apply(
+        StagedChange $stagedChange,
+        ?Model $appliedBy = null,
+        StagedConflictResolution|string|null $mode = null,
+        array $resolvedValues = [],
+    ): bool {
+        return $this->manager->apply($stagedChange, $appliedBy, $mode, $resolvedValues);
+    }
+
+    /**
      * Cancel all pending changes.
      *
      * Iterates through all pending staged changes and cancels them via the
@@ -289,6 +308,40 @@ final readonly class StagingConductor
         $strategy = $this->manager->resolveApprovalStrategy($stagedChange->approval_strategy);
 
         return $strategy->status($stagedChange);
+    }
+
+    /**
+     * Detect conflicts between staged base values and the current persisted model.
+     *
+     * @param  StagedChange                        $stagedChange The staged change to inspect
+     * @return array<string, array<string, mixed>> Detected conflicts keyed by attribute
+     */
+    public function detectConflicts(StagedChange $stagedChange): array
+    {
+        return $this->manager->detectConflicts($stagedChange);
+    }
+
+    /**
+     * Determine whether the staged change currently has conflicts.
+     */
+    public function hasConflicts(StagedChange $stagedChange): bool
+    {
+        return $this->manager->hasConflicts($stagedChange);
+    }
+
+    /**
+     * Persist a conflict resolution mode for a staged change.
+     *
+     * @param StagedChange                    $stagedChange   The staged change to resolve
+     * @param StagedConflictResolution|string $mode           The resolution mode to persist
+     * @param array<string, mixed>            $resolvedValues Explicit values for manual conflict resolution
+     */
+    public function resolveConflicts(
+        StagedChange $stagedChange,
+        StagedConflictResolution|string $mode,
+        array $resolvedValues = [],
+    ): void {
+        $this->manager->resolveConflicts($stagedChange, $mode, $resolvedValues);
     }
 
     /**

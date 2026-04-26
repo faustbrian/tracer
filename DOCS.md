@@ -767,6 +767,10 @@ protected $listen = [
 
 This guide covers the staged changes system, which allows you to queue model changes for review and approval before they're persisted.
 
+Tracer also protects apply-time integrity. If the live model changes after a
+staged change is created, Tracer detects that drift as a conflict and requires
+an explicit resolution before apply continues.
+
 ## When to Use Staged Changes
 
 Staged changes are ideal for:
@@ -843,6 +847,72 @@ $stagedChange = Tracer::stage($article, [
     'title' => 'New Title',
 ], 'Marketing requested title change');
 ```
+
+## Conflict Detection And Resolution
+
+Tracer compares the staged change's `original_values` against the current model
+state when you detect conflicts or attempt to apply the change.
+
+### Inspect Conflicts
+
+```php
+$conflicts = Tracer::detectConflicts($stagedChange);
+
+/*
+[
+    'title' => [
+        'original' => 'Old Title',
+        'current' => 'Edited In Production',
+        'proposed' => 'Proposed Title',
+    ],
+]
+*/
+```
+
+### Apply With `theirs`
+
+Use the staged value for each conflicting attribute.
+
+```php
+use Cline\Tracer\Enums\StagedConflictResolution;
+
+Tracer::apply($stagedChange, mode: StagedConflictResolution::Theirs);
+```
+
+### Apply With `ours`
+
+Keep the currently persisted value for conflicting attributes while still
+applying non-conflicting staged attributes.
+
+```php
+Tracer::apply($stagedChange, mode: StagedConflictResolution::Ours);
+```
+
+### Resolve Manually
+
+Persist an explicit merged value for each conflicting attribute and then apply
+later, or pass the values directly during apply.
+
+```php
+Tracer::resolveConflicts(
+    $stagedChange,
+    StagedConflictResolution::Manual,
+    ['title' => 'Merged Title'],
+);
+
+Tracer::apply($stagedChange);
+```
+
+```php
+Tracer::apply(
+    $stagedChange,
+    mode: StagedConflictResolution::Manual,
+    resolvedValues: ['title' => 'Merged Title'],
+);
+```
+
+If conflicts exist and no resolution is provided, `Tracer::apply(...)` throws a
+`StagedChangeHasConflictsException`.
 
 ## Staged Change Lifecycle
 

@@ -8,8 +8,11 @@
  */
 
 use Cline\Tracer\Enums\StagedChangeStatus;
+use Cline\Tracer\Enums\StagedConflictResolution;
 use Cline\Tracer\Exceptions\CannotApplyStagedChangeException;
 use Cline\Tracer\Exceptions\CannotModifyStagedChangeException;
+use Cline\Tracer\Exceptions\StagedChangeHasConflictsException;
+use Cline\Tracer\Exceptions\StagedChangeManualResolutionMissingValuesException;
 use Cline\Tracer\Tracer;
 
 describe('Staged Changes', function (): void {
@@ -135,6 +138,108 @@ describe('Staged Changes', function (): void {
 
             expect($stagedChange->fresh()->applied_at)->not->toBeNull();
         });
+
+        test('detects conflicts when staged attributes drift before apply', function (): void {
+            $article = createArticle('Original Title');
+            $stagedChange = Tracer::staging($article)->stage(['title' => 'Proposed Title']);
+            Tracer::approve($stagedChange);
+
+            $article->update(['title' => 'Live Title']);
+
+            $conflicts = Tracer::detectConflicts($stagedChange->fresh());
+
+            expect($conflicts)->toBe([
+                'title' => [
+                    'original' => 'Original Title',
+                    'current' => 'Live Title',
+                    'proposed' => 'Proposed Title',
+                ],
+            ]);
+            expect(Tracer::hasConflicts($stagedChange->fresh()))->toBeTrue();
+            expect($stagedChange->fresh()->conflict_snapshot)->toBe($conflicts);
+        });
+
+        test('cannot apply approved change with unresolved conflicts', function (): void {
+            $article = createArticle('Original Title');
+            $stagedChange = Tracer::staging($article)->stage(['title' => 'Proposed Title']);
+            Tracer::approve($stagedChange);
+
+            $article->update(['title' => 'Live Title']);
+
+            expect(fn () => Tracer::apply($stagedChange->fresh()))
+                ->toThrow(StagedChangeHasConflictsException::class);
+        });
+
+        test('can apply conflicted change using theirs resolution', function (): void {
+            $article = createArticle('Original Title');
+            $stagedChange = Tracer::staging($article)->stage(['title' => 'Proposed Title']);
+            Tracer::approve($stagedChange);
+
+            $article->update(['title' => 'Live Title']);
+
+            Tracer::apply($stagedChange->fresh(), mode: StagedConflictResolution::Theirs);
+
+            expect($article->fresh()->title)->toBe('Proposed Title');
+            expect($stagedChange->fresh())
+                ->status->toBe(StagedChangeStatus::Applied)
+                ->conflict_resolution->toBe(StagedConflictResolution::Theirs);
+        });
+
+        test('can apply conflicted change using ours resolution', function (): void {
+            $article = createArticle('Original Title');
+            $stagedChange = Tracer::staging($article)->stage([
+                'title' => 'Proposed Title',
+                'status' => 'published',
+            ]);
+            Tracer::approve($stagedChange);
+
+            $article->update(['title' => 'Live Title']);
+
+            Tracer::apply($stagedChange->fresh(), mode: StagedConflictResolution::Ours);
+
+            expect($article->fresh())
+                ->title->toBe('Live Title')
+                ->status->toBe('published');
+            expect($stagedChange->fresh()->conflict_resolution)->toBe(StagedConflictResolution::Ours);
+        });
+
+        test('can apply conflicted change using manual resolution', function (): void {
+            $article = createArticle('Original Title');
+            $stagedChange = Tracer::staging($article)->stage([
+                'title' => 'Proposed Title',
+                'status' => 'published',
+            ]);
+            Tracer::approve($stagedChange);
+
+            $article->update(['title' => 'Live Title']);
+
+            Tracer::apply(
+                $stagedChange->fresh(),
+                mode: StagedConflictResolution::Manual,
+                resolvedValues: ['title' => 'Merged Title'],
+            );
+
+            expect($article->fresh())
+                ->title->toBe('Merged Title')
+                ->status->toBe('published');
+            expect($stagedChange->fresh())
+                ->conflict_resolution->toBe(StagedConflictResolution::Manual)
+                ->resolved_values->toBe(['title' => 'Merged Title']);
+        });
+
+        test('manual resolution requires values for every conflicting attribute', function (): void {
+            $article = createArticle('Original Title');
+            $stagedChange = Tracer::staging($article)->stage(['title' => 'Proposed Title']);
+            Tracer::approve($stagedChange);
+
+            $article->update(['title' => 'Live Title']);
+
+            expect(fn () => Tracer::apply(
+                $stagedChange->fresh(),
+                mode: StagedConflictResolution::Manual,
+                resolvedValues: [],
+            ))->toThrow(StagedChangeManualResolutionMissingValuesException::class);
+        });
     });
 
     describe('cancellation', function (): void {
@@ -204,6 +309,23 @@ describe('Staged Changes', function (): void {
                 ->toHaveKey('status')
                 ->toHaveKey('approvals_required')
                 ->toHaveKey('is_approved');
+        });
+
+        test('can resolve conflicts before applying', function (): void {
+            $article = createArticle('Original Title');
+            $stagedChange = Tracer::staging($article)->stage(['title' => 'Proposed Title']);
+            Tracer::approve($stagedChange);
+            $article->update(['title' => 'Live Title']);
+
+            Tracer::staging($article)->resolveConflicts(
+                $stagedChange->fresh(),
+                StagedConflictResolution::Manual,
+                ['title' => 'Merged Title'],
+            );
+
+            Tracer::staging($article)->apply($stagedChange->fresh());
+
+            expect($article->fresh()->title)->toBe('Merged Title');
         });
     });
 
